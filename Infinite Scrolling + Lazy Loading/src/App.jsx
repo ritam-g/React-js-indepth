@@ -6,14 +6,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const loader = useRef(null);
+  const loaderRef = useRef(null);
 
   // 🔥 Fetch Images
   const fetchImages = async () => {
     if (loading || !hasMore) return;
 
     setLoading(true);
-
     try {
       const res = await fetch(
         `https://picsum.photos/v2/list?page=${page}&limit=10`
@@ -21,15 +20,20 @@ export default function App() {
       const data = await res.json();
 
       if (data.length === 0) {
-        setHasMore(false); // stop when no data
+        setHasMore(false);
       } else {
-        setImages((prev) => [...prev, ...data]);
+
+        // Use functional update to avoid stale state
+        setImages((prevImages) => [...prevImages, ...data]);
+        console.log('====================================');
+        console.log(images.length);
+        console.log('====================================');
       }
     } catch (error) {
       console.error("Error fetching images:", error);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   // 🔥 Call API when page changes
@@ -39,26 +43,30 @@ export default function App() {
 
   // 🔥 Intersection Observer
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting && hasMore && !loading) {
-          setPage((prev) => prev + 1);
-        }
-      },
-      { threshold: 1 }
-    );
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !loading && hasMore) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    }, { threshold: 1 });
 
-    const currentLoader = loader.current;
+    const loaderDiv = loaderRef.current;
 
-    if (currentLoader) {
-      observer.observe(currentLoader);
+    if (loaderDiv) {
+      observer.observe(loaderDiv);
     }
+    // this will run when the new observer call 
+    // ✅ Key takeaway:
 
+    //! Even though your useEffect has a return function with observer.unobserve,
+    //!  it does not immediately remove observation. 
+    //! It only executes before the next effect runs or when the component unmounts. 
+    //! Meanwhile, your observer is actively watching the loader and triggers the callback when visible.
     return () => {
-      if (currentLoader) observer.unobserve(currentLoader);
+      if (loaderDiv) {
+        observer.unobserve(loaderDiv);
+      }
     };
-  }, [hasMore, loading]);
+  }, [loading, hasMore]);
 
   return (
     <div style={{ padding: "20px" }}>
@@ -83,7 +91,7 @@ export default function App() {
       </div>
 
       {/* Loader */}
-      <div ref={loader} style={{ textAlign: "center", padding: "20px" }}>
+      <div ref={loaderRef} style={{ textAlign: "center", padding: "20px" }}>
         {loading && <p>Loading...</p>}
         {!hasMore && <p>No more images 🚫</p>}
       </div>
