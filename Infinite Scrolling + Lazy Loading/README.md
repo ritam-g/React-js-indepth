@@ -1,12 +1,87 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+    ┌──────────────────────┐
+        │   React Component    │
+        │  (App.jsx loaded)    │
+        └─────────┬────────────┘
+                  │
+                  ▼
+        ┌──────────────────────┐
+        │ Initial State Setup  │
+        │ images = []          │
+        │ page = 1             │
+        │ loading = false      │
+        │ hasMore = true       │
+        └─────────┬────────────┘
+                  │
+                  ▼
+        ┌──────────────────────┐
+        │ useEffect(page)      │
+        │ → fetchImages()      │
+        └─────────┬────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ API Call (Picsum)          │
+        │ page=1 → 10 images         │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ Update State               │
+        │ images = [10 imgs]         │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ Render UI                  │
+        │ Show images in grid        │
+        │ + Loader div at bottom     │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ Intersection Observer 👀   │
+        │ watching "loader div"      │
+        └─────────┬──────────────────┘
+                  │
+        (User Scrolls ↓↓↓↓↓↓↓↓↓↓↓)
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ Loader div visible?        │
+        │ YES → trigger callback     │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ setPage(page + 1)          │
+        │ page = 2                   │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ useEffect runs again       │
+        │ → fetchImages()            │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ API Call (page=2)          │
+        │ next 10 images             │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        ┌────────────────────────────┐
+        │ Append Images              │
+        │ images = old + new         │
+        └─────────┬──────────────────┘
+                  │
+                  ▼
+        🔁 LOOP CONTINUES (SCROLL → LOAD → APPEND)
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+    │
+                  ▼
+        ┌────────────────────────────┐
+        │ No more data?              │
+        │ YES → hasMore = false      │
+        └────────────────────────────┘
